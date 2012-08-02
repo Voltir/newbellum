@@ -267,18 +267,17 @@ def show_topic(request, topic_id, full=True):
 
     last_post = topic.last_post
 
-    if request.user.is_authenticated():
-        topic.update_read(request.user)
+    user = request.user
+    if not request.user.is_authenticated():
+        user = get_anonymous_user()
+
+    topic.update_read(user)
     posts = topic.posts.all().select_related()
-
-    initial = {}
-    if request.user.is_authenticated():
-        initial = {'markup': request.user.forum_profile.markup}
-    form = AddPostForm(topic=topic, initial=initial)
-
-    moderator = request.user.is_superuser or\
-        request.user in topic.forum.moderators.all()
-    if request.user.is_authenticated() and request.user in topic.subscribers.all():
+    initial = {'markup': user.forum_profile.markup}
+    form = AddPostForm(user=user,topic=topic, initial=initial)
+    moderator = user.is_superuser or user in topic.forum.moderators.all()
+    
+    if user in topic.subscribers.all():
         subscribed = True
     else:
         subscribed = False
@@ -650,7 +649,7 @@ def show_attachment(request, hash):
 @login_required
 @csrf_exempt
 def post_preview(request):
-    assert(False)
+    assert(False),"post_preview does not seem to be implemented"
     '''Preview for markitup'''
     markup = request.user.forum_profile.markup
     data = request.POST.get('data', '')

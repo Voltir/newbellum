@@ -65,9 +65,15 @@ class AddPostForm(forms.ModelForm):
 
         self.fields['body'].widget = forms.Textarea(attrs={'class':'markup', 'rows':'20', 'cols':'95'})
 
-        if not forum_settings.ATTACHMENT_SUPPORT:
+        if not (forum_settings.ATTACHMENT_SUPPORT and self.__check_attachment_perm()):
             self.fields['attachment'].widget = forms.HiddenInput()
             self.fields['attachment'].required = False
+
+    def __check_attachment_perm(self):
+        forum = self.forum
+        if forum == None:
+            forum = self.topic.forum
+        return self.user.has_perm('view_forum',forum)
 
     def clean(self):
         '''
@@ -108,7 +114,7 @@ class AddPostForm(forms.ModelForm):
                     body=self.cleaned_data['body'])
 
         post.save()
-        if forum_settings.ATTACHMENT_SUPPORT:
+        if forum_settings.ATTACHMENT_SUPPORT and self.__check_attachment_perm():
             self.save_attachment(post, self.cleaned_data['attachment'])
         return post
 

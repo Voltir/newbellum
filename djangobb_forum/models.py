@@ -111,10 +111,11 @@ class Forum(models.Model):
 
     class Meta:
         permissions = (
-            ('view_forum','View this Forum'),
-            ('add_post','Create post in this Forum'),
+            ('view_forum','Can view this Forum'),
+            ('add_post','Can create post in this Forum'),
             ('edit_post','Can edit posts in this Forum'),
             ('delete_post','Can delete posts in this Forum'),
+            ('add_attachment','Can add attachments to posts in this Forum'),
         )
         ordering = ['position']
         verbose_name = _('Forum')
