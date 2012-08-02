@@ -9,9 +9,7 @@
 <div class="linkst">
 	<div class="inbox">
 		<div class="pagelink conl">{% paginate %}</div>
-		{% if user.is_authenticated %}
-			<p class="postlink conr"><a href="{% url djangobb:add_topic forum.id %}">{% trans "New topic" %}</a></p>
-		{% endif %}
+		<p class="postlink conr"><a href="{% url djangobb:add_topic forum.id %}">{% trans "New topic" %}</a></p>
 		<ul><li><a href="{% url djangobb:index %}">{% trans "Root" %}</a> </li><li>&raquo; {{ forum.name }}</li></ul>
 		<div class="clearer"></div>
 	</div>
@@ -67,9 +65,7 @@
 <div class="linkst">
 	<div class="inbox">
 		<div class="pagelink conl">{% paginate %}</div>
-		{% if user.is_authenticated %}
-			<p class="postlink conr"><a href="{% url djangobb:add_topic forum.id %}">{% trans "New topic" %}</a></p>
-		{% endif %}
+		<p class="postlink conr"><a href="{% url djangobb:add_topic forum.id %}">{% trans "New topic" %}</a></p>
 		<ul><li><a href="{% url djangobb:index %}">{% trans "Root" %}</a> </li><li>&raquo; {{ forum.name }}</li></ul>
 		<div class="clearer"></div>
 	</div>
@@ -81,9 +77,9 @@
 		<div><label>{% trans "Jump to" %}
 		<br />
 		<select name="id" id="forum_id" onchange="window.location=('{% url djangobb:index %}'+this.options[this.selectedIndex].value)">
-			{% for category in categories %}
-				<optgroup label="{{ category }}">
-					{% for forum in category.forums.all %}
+			{% for category in cats %}
+				<optgroup label="{{ category.cat }}">
+					{% for forum in category.forums %}
 						<option value="{{ forum.id }}">{{ forum.name }}</option>
 					{% endfor %}
 				</optgroup>

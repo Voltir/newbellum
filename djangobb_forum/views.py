@@ -27,6 +27,28 @@ from djangobb_forum.templatetags.forum_extras import forum_moderated_by
 
 from haystack.query import SearchQuerySet, SQ
 
+from guardian.decorators import permission_required
+from guardian.decorators import permission_required_or_403
+from guardian.shortcuts import get_objects_for_user
+from guardian.utils import get_anonymous_user
+
+def RENAME_ME_get_cats(request):
+    cats = {}
+    forums = {}
+
+    user = request.user
+    if user.is_anonymous():
+        user = get_anonymous_user()
+
+    for forum in get_objects_for_user(user,'djangobb_forum.view_forum'):
+        cat = cats.setdefault(forum.category.id,
+            {'id': forum.category.id, 'cat': forum.category, 'forums': []})
+        cat['forums'].append(forum)
+        forums[forum.id] = forum
+
+    cmpdef = lambda a, b: cmp(a['cat'].position, b['cat'].position)
+    cats = sorted(cats.values(), cmpdef)
+    return cats
 
 def index(request, full=True):
     users_cached = cache.get('djangobb_users_online', {})
@@ -35,24 +57,7 @@ def index(request, full=True):
     guest_count = len(guests_cached)
     users_count = len(users_online)
 
-    cats = {}
-    forums = {}
-    user_groups = request.user.groups.all()
-    if request.user.is_anonymous():  # in django 1.1 EmptyQuerySet raise exception
-        user_groups = []
-    _forums = Forum.objects.filter(
-            Q(category__groups__in=user_groups) | \
-            Q(category__groups__isnull=True)).select_related('last_post__topic',
-                                                            'last_post__user',
-                                                            'category')
-    for forum in _forums:
-        cat = cats.setdefault(forum.category.id,
-            {'id': forum.category.id, 'cat': forum.category, 'forums': []})
-        cat['forums'].append(forum)
-        forums[forum.id] = forum
-
-    cmpdef = lambda a, b: cmp(a['cat'].position, b['cat'].position)
-    cats = sorted(cats.values(), cmpdef)
+    cats = RENAME_ME_get_cats(request)
 
     to_return = {'cats': cats,
                 'posts': Post.objects.count(),
@@ -71,6 +76,7 @@ def index(request, full=True):
 
 @transaction.commit_on_success
 def moderate(request, forum_id):
+    assert(False)
     forum = get_object_or_404(Forum, pk=forum_id)
     topics = forum.topics.order_by('-sticky', '-updated').select_related()
     if request.user.is_superuser or request.user in forum.moderators.all():
@@ -105,6 +111,7 @@ def moderate(request, forum_id):
 
 
 def search(request):
+    assert(False)
     # TODO: move to form
     if 'action' in request.GET:
         action = request.GET['action']
@@ -193,6 +200,7 @@ def search(request):
 
 @login_required
 def misc(request):
+    assert(False)
     if 'action' in request.GET:
         action = request.GET['action']
         if action =='markread':
@@ -228,15 +236,16 @@ def misc(request):
                 'mailto': mailto}
                 )
 
-
+@permission_required_or_403('djangobb_forum.view_forum',(Forum,'pk','forum_id'))
 def show_forum(request, forum_id, full=True):
     forum = get_object_or_404(Forum, pk=forum_id)
-    if not forum.category.has_access(request.user):
-        return HttpResponseForbidden()
     topics = forum.topics.order_by('-sticky', '-updated').select_related()
     moderator = request.user.is_superuser or\
         request.user in forum.moderators.all()
-    to_return = {'categories': Category.objects.all(),
+
+    cats = RENAME_ME_get_cats(request)
+
+    to_return = {'cats': cats,
                 'forum': forum,
                 'posts': forum.post_count,
                 'topics': topics,
@@ -250,8 +259,9 @@ def show_forum(request, forum_id, full=True):
 
 @transaction.commit_on_success
 def show_topic(request, topic_id, full=True):
+
     topic = get_object_or_404(Topic.objects.select_related(), pk=topic_id)
-    if not topic.forum.category.has_access(request.user):
+    if not request.user.has_perm('view_forum',topic.forum):
         return HttpResponseForbidden()
     Topic.objects.filter(pk=topic.id).update(views=F('views') + 1)
 
@@ -275,7 +285,8 @@ def show_topic(request, topic_id, full=True):
 
     highlight_word = request.GET.get('hl', '')
     if full:
-        return render(request, 'djangobb_forum/topic.html', {'categories': Category.objects.all(),
+        return render(request, 'djangobb_forum/topic.html', {
+                'cats': RENAME_ME_get_cats(request),
                 'topic': topic,
                 'last_post': last_post,
                 'form': form,
@@ -285,35 +296,40 @@ def show_topic(request, topic_id, full=True):
                 'highlight_word': highlight_word,
                 })
     else:
-        return render(request, 'djangobb_forum/lofi/topic.html', {'categories': Category.objects.all(),
+        return render(request, 'djangobb_forum/lofi/topic.html', {
+                'cats': RENAME_ME_get_cats(request), #I dont think this is used..
                 'topic': topic,
                 'posts': posts,
                 })
 
 
-@login_required
 @transaction.commit_on_success
 def add_post(request, forum_id, topic_id):
     forum = None
     topic = None
     posts = None
 
+    user = request.user
+    if request.user.is_anonymous():
+        user = get_anonymous_user()
+
     if forum_id:
         forum = get_object_or_404(Forum, pk=forum_id)
-        if not forum.category.has_access(request.user):
+        if not user.has_perm('djangobb_forum.add_post',forum):
             return HttpResponseForbidden()
     elif topic_id:
         topic = get_object_or_404(Topic, pk=topic_id)
         posts = topic.posts.all().select_related()
-        if not topic.forum.category.has_access(request.user):
+        if not user.has_perm('djangobb_forum.add_post',topic.forum):
             return HttpResponseForbidden()
     if topic and topic.closed:
         return HttpResponseRedirect(topic.get_absolute_url())
 
     ip = request.META.get('REMOTE_ADDR', None)
+
     form = build_form(AddPostForm, request, topic=topic, forum=forum,
-                      user=request.user, ip=ip,
-                      initial={'markup': request.user.forum_profile.markup})
+                      user=user, ip=ip,
+                      initial={'markup': user.forum_profile.markup})
 
     if 'post_id' in request.GET:
         post_id = request.GET['post_id']
@@ -333,6 +349,7 @@ def add_post(request, forum_id, topic_id):
 
 @transaction.commit_on_success
 def upload_avatar(request, username, template=None, form_class=None):
+    assert(False)
     user = get_object_or_404(User, username=username)
     if request.user.is_authenticated() and user == request.user or request.user.is_superuser:
         form = build_form(form_class, request, instance=user.forum_profile)
@@ -351,7 +368,7 @@ def upload_avatar(request, username, template=None, form_class=None):
                 'topic_count': topic_count,
                })
 
-
+@permission_required_or_403('djangobb_forum.view_user_list')
 @transaction.commit_on_success
 def user(request, username, section='essentials', action=None, template='djangobb_forum/profile/profile_essentials.html', form_class=EssentialsProfileForm):
     user = get_object_or_404(User, username=username)
@@ -378,6 +395,7 @@ def user(request, username, section='essentials', action=None, template='djangob
 @login_required
 @transaction.commit_on_success
 def reputation(request, username):
+    assert(False)
     user = get_object_or_404(User, username=username)
     form = build_form(ReputationForm, request, from_user=request.user, to_user=user)
 
@@ -425,9 +443,9 @@ def show_post(request, post_id):
     return HttpResponseRedirect(url)
 
 
-@login_required
 @transaction.commit_on_success
 def edit_post(request, post_id):
+    #Permissions checked in forum_editable_by
     from djangobb_forum.templatetags.forum_extras import forum_editable_by
 
     post = get_object_or_404(Post, pk=post_id)
@@ -437,7 +455,10 @@ def edit_post(request, post_id):
     form = build_form(EditPostForm, request, topic=topic, instance=post)
     if form.is_valid():
         post = form.save(commit=False)
-        post.updated_by = request.user
+        if not request.user.is_authenticated():
+            post.updated_by = get_anonymous_user()
+        else:
+            post.updated_by = request.user
         post.save()
         return HttpResponseRedirect(post.get_absolute_url())
 
@@ -449,7 +470,7 @@ def edit_post(request, post_id):
 @login_required
 @transaction.commit_on_success
 def delete_posts(request, topic_id):
-
+    assert(False)
     topic = Topic.objects.select_related().get(pk=topic_id)
 
     if forum_moderated_by(topic, request.user):
@@ -493,6 +514,7 @@ def delete_posts(request, topic_id):
 @login_required
 @transaction.commit_on_success
 def move_topic(request):
+    assert(False)
     if 'topic_id' in request.GET:
         #if move only 1 topic
         topic_ids = [request.GET['topic_id']]
@@ -531,7 +553,7 @@ def move_topic(request):
 @login_required
 @transaction.commit_on_success
 def stick_unstick_topic(request, topic_id, action):
-
+    assert(False)
     topic = get_object_or_404(Topic, pk=topic_id)
     if forum_moderated_by(topic, request.user):
         if action == 's':
@@ -545,6 +567,7 @@ def stick_unstick_topic(request, topic_id, action):
 @login_required
 @transaction.commit_on_success
 def delete_post(request, post_id):
+    assert(False)
     post = get_object_or_404(Post, pk=post_id)
     last_post = post.topic.last_post
     topic = post.topic
@@ -573,7 +596,7 @@ def delete_post(request, post_id):
 @login_required
 @transaction.commit_on_success
 def open_close_topic(request, topic_id, action):
-
+    assert(False)
     topic = get_object_or_404(Topic, pk=topic_id)
     if forum_moderated_by(topic, request.user):
         if action == 'c':
@@ -583,7 +606,7 @@ def open_close_topic(request, topic_id, action):
         topic.save()
     return HttpResponseRedirect(topic.get_absolute_url())
 
-
+@permission_required_or_403('djangobb_forum.view_user_list')
 def users(request):
     users = User.objects.filter(forum_profile__post_count__gte=forum_settings.POST_USER_SEARCH).order_by('username')
     form = UserSearchForm(request.GET)
@@ -596,6 +619,7 @@ def users(request):
 @login_required
 @transaction.commit_on_success
 def delete_subscription(request, topic_id):
+    assert(False)
     topic = get_object_or_404(Topic, pk=topic_id)
     topic.subscribers.remove(request.user)
     if 'from_topic' in request.GET:
@@ -607,6 +631,7 @@ def delete_subscription(request, topic_id):
 @login_required
 @transaction.commit_on_success
 def add_subscription(request, topic_id):
+    assert(False)
     topic = get_object_or_404(Topic, pk=topic_id)
     topic.subscribers.add(request.user)
     return HttpResponseRedirect(reverse('djangobb:topic', args=[topic.id]))
@@ -614,6 +639,7 @@ def add_subscription(request, topic_id):
 
 @login_required
 def show_attachment(request, hash):
+    assert(False)
     attachment = get_object_or_404(Attachment, hash=hash)
     file_data = file(attachment.get_absolute_path(), 'rb').read()
     response = HttpResponse(file_data, mimetype=attachment.content_type)
@@ -624,6 +650,7 @@ def show_attachment(request, hash):
 @login_required
 @csrf_exempt
 def post_preview(request):
+    assert(False)
     '''Preview for markitup'''
     markup = request.user.forum_profile.markup
     data = request.POST.get('data', '')

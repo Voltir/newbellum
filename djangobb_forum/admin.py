@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.auth import admin as auth_admin
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
+from guardian.admin import GuardedModelAdmin
 
 from djangobb_forum.models import Category, Forum, Topic, Post, Profile, Reputation, \
     Report, Ban, Attachment
@@ -11,7 +12,7 @@ from djangobb_forum.models import Category, Forum, Topic, Post, Profile, Reputat
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'position', 'forum_count']
 
-class ForumAdmin(admin.ModelAdmin):
+class ForumAdmin(GuardedModelAdmin):
     list_display = ['name', 'category', 'position', 'topic_count']
     raw_id_fields = ['moderators', 'last_post']
 

@@ -13,9 +13,10 @@ from django.contrib.humanize.templatetags.humanize import naturalday
 
 from pagination.templatetags.pagination_tags import paginate
 
+from guardian.utils import get_anonymous_user
+
 from djangobb_forum.models import Report
 from djangobb_forum import settings as forum_settings
-
 
 register = template.Library()
 
@@ -162,7 +163,6 @@ def forum_moderated_by(topic, user):
     """
     Check if user is moderator of topic's forum.
     """
-
     return user.is_superuser or user in topic.forum.moderators.all()
 
 
@@ -171,13 +171,16 @@ def forum_editable_by(post, user):
     """
     Check if the post could be edited by the user.
     """
+    if not user.is_authenticated():
+        user = get_anonymous_user()
 
     if user.is_superuser:
         return True
     if post.user == user:
         return True
-    if user in post.topic.forum.moderators.all():
+    if user.has_perm('djangobb_forum.edit_post',post):
         return True
+
     return False
 
 
@@ -186,7 +189,8 @@ def forum_posted_by(post, user):
     """
     Check if the post is writed by the user.
     """
-
+    if not user.is_authenticated():
+        return post.user == get_anonymous_user()
     return post.user == user
 
 

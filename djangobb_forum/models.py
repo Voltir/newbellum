@@ -1,13 +1,14 @@
 from datetime import datetime
 import os
 import os.path
+import sys
 from hashlib import sha1
 
 from django.db import models
-from django.contrib.auth.models import User, Group
+from django.db.models.signals import post_save
+from django.contrib.auth.models import User, Group, Permission
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from django.db.models.signals import post_save
 
 from djangobb_forum.fields import AutoOneToOneField, ExtendedImageField, JSONField
 from djangobb_forum.util import smiles, convert_text_to_html
@@ -56,9 +57,17 @@ if os.path.exists(path):
 else:
     THEME_CHOICES = []
 
+#Class to provide global permissions
+class Global(models.Model):
+
+    class Meta:
+        permissions = (
+            ("view_user_list","Can view user list"),
+            ("send_private_message","Can send private messages"),
+        )
+
 class Category(models.Model):
     name = models.CharField(_('Name'), max_length=80)
-    groups = models.ManyToManyField(Group,blank=True, null=True, verbose_name=_('Groups'), help_text=_('Only users from these groups can see this category'))
     position = models.IntegerField(_('Position'), blank=True, default=0)
 
     class Meta:
@@ -89,7 +98,6 @@ class Category(models.Model):
                 return False
         return True
 
-
 class Forum(models.Model):
     category = models.ForeignKey(Category, related_name='forums', verbose_name=_('Category'))
     name = models.CharField(_('Name'), max_length=80)
@@ -102,6 +110,12 @@ class Forum(models.Model):
     last_post = models.ForeignKey('Post', related_name='last_forum_post', blank=True, null=True)
 
     class Meta:
+        permissions = (
+            ('view_forum','View this Forum'),
+            ('add_post','Create post in this Forum'),
+            ('edit_post','Can edit posts in this Forum'),
+            ('delete_post','Can delete posts in this Forum'),
+        )
         ordering = ['position']
         verbose_name = _('Forum')
         verbose_name_plural = _('Forums')
