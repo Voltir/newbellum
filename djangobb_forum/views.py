@@ -586,10 +586,8 @@ def move_topic(request):
             })
 
 
-@login_required
 @transaction.commit_on_success
 def stick_unstick_topic(request, topic_id, action):
-    assert(False)
     topic = get_object_or_404(Topic, pk=topic_id)
     if forum_moderated_by(topic, request.user):
         if action == 's':
