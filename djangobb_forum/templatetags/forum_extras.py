@@ -163,7 +163,10 @@ def forum_moderated_by(topic, user):
     """
     Check if user is moderator of topic's forum.
     """
-    return user.is_superuser or user in topic.forum.moderators.all()
+    if not user.is_authenticated():
+        user = get_anonymous_user()
+
+    return user.is_superuser or user.has_perm('djangobb_forum.moderate_forum',topic.forum)
 
 
 @register.filter

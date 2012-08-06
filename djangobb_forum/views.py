@@ -34,15 +34,19 @@ from guardian.decorators import permission_required_or_403
 from guardian.shortcuts import get_objects_for_user
 from guardian.utils import get_anonymous_user
 
-def RENAME_ME_get_cats(request):
+def get_user_object(request):
+    if  request.user.is_anonymous():
+        return get_anonymous_user()
+    else:
+        return request.user
+
+def get_permitted_catagories(request,permission):
     cats = {}
     forums = {}
 
-    user = request.user
-    if user.is_anonymous():
-        user = get_anonymous_user()
+    user = get_user_object(request)
 
-    for forum in get_objects_for_user(user,'djangobb_forum.view_forum'):
+    for forum in get_objects_for_user(user,permission):
         cat = cats.setdefault(forum.category.id,
             {'id': forum.category.id, 'cat': forum.category, 'forums': []})
         cat['forums'].append(forum)
@@ -59,9 +63,8 @@ def index(request, full=True):
     guest_count = len(guests_cached)
     users_count = len(users_online)
 
-    cats = RENAME_ME_get_cats(request)
-
-    to_return = {'cats': cats,
+    to_return = {
+                'cats': get_permitted_catagories(request,'djangobb_forum.view_forum'),
                 'posts': Post.objects.count(),
                 'topics': Topic.objects.count(),
                 'users': User.objects.count(),
@@ -75,45 +78,41 @@ def index(request, full=True):
     else:
         return render(request, 'djangobb_forum/lofi/index.html', to_return)
 
-
+@permission_required_or_403('djangobb_forum.moderate_forum',(Forum,'pk','forum_id'))
 @transaction.commit_on_success
 def moderate(request, forum_id):
-    assert(False)
     forum = get_object_or_404(Forum, pk=forum_id)
     topics = forum.topics.order_by('-sticky', '-updated').select_related()
-    if request.user.is_superuser or request.user in forum.moderators.all():
-        topic_ids = request.POST.getlist('topic_id')
-        if 'move_topics' in request.POST:
-            return render(request, 'djangobb_forum/move_topic.html', {
-                'categories': Category.objects.all(),
-                'topic_ids': topic_ids,
-                'exclude_forum': forum,
+    user = get_user_object(request)
+    topic_ids = request.POST.getlist('topic_id')
+    if 'move_topics' in request.POST:
+        return render(request, 'djangobb_forum/move_topic.html', {
+            'cats': get_permitted_catagories(request,'djangobb_forum.moderate_forum'),
+            'topic_ids': topic_ids,
+            'exclude_forum': forum,
+        })
+    elif 'delete_topics' in request.POST:
+        for topic_id in topic_ids:
+            topic = get_object_or_404(Topic, pk=topic_id)
+            topic.delete()
+        messages.success(request, _("Topics deleted"))
+        return HttpResponseRedirect(reverse('djangobb:index'))
+    elif 'open_topics' in request.POST:
+        for topic_id in topic_ids:
+            open_close_topic(request, topic_id, 'o')
+        messages.success(request, _("Topics opened"))
+        return HttpResponseRedirect(reverse('djangobb:index'))
+    elif 'close_topics' in request.POST:
+        for topic_id in topic_ids:
+            open_close_topic(request, topic_id, 'c')
+        messages.success(request, _("Topics closed"))
+        return HttpResponseRedirect(reverse('djangobb:index'))
+
+    return render(request, 'djangobb_forum/moderate.html', {'forum': forum,
+            'topics': topics,
+            #'sticky_topics': forum.topics.filter(sticky=True),
+            'posts': forum.posts.count(),
             })
-        elif 'delete_topics' in request.POST:
-            for topic_id in topic_ids:
-                topic = get_object_or_404(Topic, pk=topic_id)
-                topic.delete()
-            messages.success(request, _("Topics deleted"))
-            return HttpResponseRedirect(reverse('djangobb:index'))
-        elif 'open_topics' in request.POST:
-            for topic_id in topic_ids:
-                open_close_topic(request, topic_id, 'o')
-            messages.success(request, _("Topics opened"))
-            return HttpResponseRedirect(reverse('djangobb:index'))
-        elif 'close_topics' in request.POST:
-            for topic_id in topic_ids:
-                open_close_topic(request, topic_id, 'c')
-            messages.success(request, _("Topics closed"))
-            return HttpResponseRedirect(reverse('djangobb:index'))
-
-        return render(request, 'djangobb_forum/moderate.html', {'forum': forum,
-                'topics': topics,
-                #'sticky_topics': forum.topics.filter(sticky=True),
-                'posts': forum.posts.count(),
-                })
-    else:
-        raise Http404
-
 
 def search(request):
     assert(False)
@@ -248,12 +247,11 @@ def misc(request):
 def show_forum(request, forum_id, full=True):
     forum = get_object_or_404(Forum, pk=forum_id)
     topics = forum.topics.order_by('-sticky', '-updated').select_related()
-    moderator = request.user.is_superuser or\
-        request.user in forum.moderators.all()
+    user = get_user_object(request)
+    moderator = user.is_superuser or user.has_perm('djangobb_forum.moderate_forum',forum)
 
-    cats = RENAME_ME_get_cats(request)
-
-    to_return = {'cats': cats,
+    to_return = {
+                'cats': get_permitted_catagories(request,'djangobb_forum.view_forum'),
                 'forum': forum,
                 'posts': forum.post_count,
                 'topics': topics,
@@ -269,7 +267,7 @@ def show_forum(request, forum_id, full=True):
 def show_topic(request, topic_id, full=True):
 
     topic = get_object_or_404(Topic.objects.select_related(), pk=topic_id)
-    if not request.user.has_perm('view_forum',topic.forum):
+    if not request.user.has_perm('djangobb_forum.view_forum',topic.forum):
         return HttpResponseForbidden()
     Topic.objects.filter(pk=topic.id).update(views=F('views') + 1)
 
@@ -283,7 +281,7 @@ def show_topic(request, topic_id, full=True):
     posts = topic.posts.all().select_related()
     initial = {'markup': user.forum_profile.markup}
     form = AddPostForm(user=user,topic=topic, initial=initial)
-    moderator = user.is_superuser or user in topic.forum.moderators.all()
+    moderator = user.is_superuser or user.has_perm('djangobb_forum.moderate_forum',topic.forum)
     
     if user in topic.subscribers.all():
         subscribed = True
@@ -293,7 +291,7 @@ def show_topic(request, topic_id, full=True):
     highlight_word = request.GET.get('hl', '')
     if full:
         return render(request, 'djangobb_forum/topic.html', {
-                'cats': RENAME_ME_get_cats(request),
+                'cats': get_permitted_catagories(request,'djangobb_forum.view_forum'),
                 'topic': topic,
                 'last_post': last_post,
                 'form': form,
@@ -304,7 +302,7 @@ def show_topic(request, topic_id, full=True):
                 })
     else:
         return render(request, 'djangobb_forum/lofi/topic.html', {
-                'cats': RENAME_ME_get_cats(request), #I dont think this is used..
+                'cats': get_permitted_catagories(request,'djangobb_forum.view_forum'),
                 'topic': topic,
                 'posts': posts,
                 })
@@ -529,21 +527,39 @@ def delete_posts(request, topic_id):
             })
 
 
-@login_required
 @transaction.commit_on_success
 def move_topic(request):
-    assert(False)
     if 'topic_id' in request.GET:
         #if move only 1 topic
         topic_ids = [request.GET['topic_id']]
     else:
         topic_ids = request.POST.getlist('topic_id')
     first_topic = topic_ids[0]
+    user = get_user_object(request)
     topic = get_object_or_404(Topic, pk=first_topic)
     from_forum = topic.forum
+
     if 'to_forum' in request.POST:
         to_forum_id = int(request.POST['to_forum'])
         to_forum = get_object_or_404(Forum, pk=to_forum_id)
+   
+        #Ensure user has valid permissions 
+        fail_perm = False
+        error_txt = ""
+        if not user.has_perm('djangobb_forum.moderate_forum',from_forum):
+            fail_perm = True
+            error_txt = _("Move Failed: not a moderator of %s" % from_forum.name)
+        if not user.has_perm('djangobb_forum.moderate_forum',to_forum):
+            fail_perm = True
+            error_txt = _("Move Failed: Not a moderator of %s" % to_forum.name)
+        if fail_perm:
+            messages.error(request,error_txt)
+            return render(request, 'djangobb_forum/move_topic.html', {
+                'cats': get_permitted_catagories(request,'djangobb_forum.moderate_forum'),
+                'topic_ids': topic_ids,
+                'exclude_forum': from_forum,
+            })
+
         for topic_id in topic_ids:
             topic = get_object_or_404(Topic, pk=topic_id)
             if topic.forum != to_forum:
@@ -563,7 +579,8 @@ def move_topic(request):
         messages.success(request, _("Topic moved."))
         return HttpResponseRedirect(to_forum.get_absolute_url())
 
-    return render(request, 'djangobb_forum/move_topic.html', {'categories': Category.objects.all(),
+    return render(request, 'djangobb_forum/move_topic.html', {
+            'cats': get_permitted_catagories(request,'djangobb_forum.moderate_forum'),
             'topic_ids': topic_ids,
             'exclude_forum': from_forum,
             })
@@ -612,10 +629,8 @@ def delete_post(request, post_id):
         return HttpResponseRedirect(topic.get_absolute_url())
 
 
-@login_required
 @transaction.commit_on_success
 def open_close_topic(request, topic_id, action):
-    assert(False)
     topic = get_object_or_404(Topic, pk=topic_id)
     if forum_moderated_by(topic, request.user):
         if action == 'c':

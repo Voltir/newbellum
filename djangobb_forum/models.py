@@ -103,7 +103,7 @@ class Forum(models.Model):
     name = models.CharField(_('Name'), max_length=80)
     position = models.IntegerField(_('Position'), blank=True, default=0)
     description = models.TextField(_('Description'), blank=True, default='')
-    moderators = models.ManyToManyField(User, blank=True, null=True, verbose_name=_('Moderators'))
+    #moderators = models.ManyToManyField(User, blank=True, null=True, verbose_name=_('Moderators'))
     updated = models.DateTimeField(_('Updated'), auto_now=True)
     post_count = models.IntegerField(_('Post count'), blank=True, default=0)
     topic_count = models.IntegerField(_('Topic count'), blank=True, default=0)
@@ -115,6 +115,7 @@ class Forum(models.Model):
             ('add_post','Can create post in this Forum'),
             ('edit_post','Can edit posts in this Forum'),
             ('delete_post','Can delete posts in this Forum'),
+            ('moderate_forum','Can moderate topics in this Forum'),
             ('add_attachment','Can add attachments to posts in this Forum'),
         )
         ordering = ['position']

@@ -14,7 +14,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 class ForumAdmin(GuardedModelAdmin):
     list_display = ['name', 'category', 'position', 'topic_count']
-    raw_id_fields = ['moderators', 'last_post']
+    raw_id_fields = ['last_post']
 
 class TopicAdmin(admin.ModelAdmin):
     def subscribers2(self, obj):
