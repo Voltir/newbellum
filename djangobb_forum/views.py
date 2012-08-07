@@ -194,7 +194,8 @@ def search(request):
         return render(request, 'djangobb_forum/search_topics.html', {'results': topics})
     else:
         form = PostSearchForm()
-        return render(request, 'djangobb_forum/search_form.html', {'categories': Category.objects.all(),
+        return render(request, 'djangobb_forum/search_form.html', {
+                'cats': get_permitted_catagories(request,'djangobb_forum.moderate_forum'),
                 'form': form,
                 })
 

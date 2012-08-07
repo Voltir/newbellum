@@ -27,13 +27,13 @@
 						<br />
 						<select id="forum" name="forum">
 							<option value="0">{% trans "All forums" %}</option>
-							{% for category in categories %}
-							<optgroup label="{{ category }}">
-								{% for forum in category.forums.all %}
-								<option value="{{ forum.id }}">{{ forum }}</option>
-								{% endfor %}
-							</optgroup>
-							{% endfor %}
+                			{% for category in cats %}
+		    		            <optgroup label="{{ category.cat }}">
+           	    				{% for forum in category.forums %}
+				            		<option value="{{ forum.id }}">{{ forum.name }}</option>
+            					{% endfor %}
+			                	</optgroup>
+                			{% endfor %}
 						</select>
 						<br /></label>
 						<label class="conl">{{ form.search_in.label }}
