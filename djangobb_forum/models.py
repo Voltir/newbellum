@@ -89,15 +89,6 @@ class Category(models.Model):
     def posts(self):
         return Post.objects.filter(topic__forum__category__id=self.id).select_related()
 
-    def has_access(self, user):
-        if self.groups.exists():
-            if user.is_authenticated(): 
-                    if not self.groups.filter(user__pk=user.id).exists():
-                        return False
-            else:
-                return False
-        return True
-
 class Forum(models.Model):
     category = models.ForeignKey(Category, related_name='forums', verbose_name=_('Category'))
     name = models.CharField(_('Name'), max_length=80)
@@ -115,8 +106,9 @@ class Forum(models.Model):
             ('add_post','Can create post in this Forum'),
             ('edit_post','Can edit posts in this Forum'),
             ('delete_post','Can delete posts in this Forum'),
+            ('add_attachment','Can add attachments in this Forum'),
+            ('download_attachment','Can download attachments in this Forum'),
             ('moderate_forum','Can moderate topics in this Forum'),
-            ('add_attachment','Can add attachments to posts in this Forum'),
         )
         ordering = ['position']
         verbose_name = _('Forum')

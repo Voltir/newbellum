@@ -115,16 +115,15 @@ def moderate(request, forum_id):
             })
 
 def search(request):
-    assert(False)
     # TODO: move to form
     if 'action' in request.GET:
         action = request.GET['action']
         #FIXME: show_user for anonymous raise exception, 
         #django bug http://code.djangoproject.com/changeset/14087 :|
-        groups = request.user.groups.all() or [] #removed after django > 1.2.3 release
-        topics = Topic.objects.filter(
-                   Q(forum__category__groups__in=groups) | \
-                   Q(forum__category__groups__isnull=True))
+        user = get_user_object(request)
+        allowed = get_objects_for_user(user,'djangobb_forum.view_forum')
+        topics = Topic.objects.filter(Q(forum__in=allowed))
+
         if action == 'show_24h':
             date = datetime.today() - timedelta(1)
             topics = topics.filter(created__gte=date)
@@ -172,11 +171,10 @@ def search(request):
                     query = query.filter(text=keywords)
                 elif search_in == 'topic':
                     query = query.filter(topic=keywords)
-
-            # add exlusions for categories user does not have access too
-            for category in Category.objects.all():
-                if not category.has_access(request.user):
-                    query = query.exclude(category=category)
+            
+            for forum in Forum.objects.all():
+               if not user.has_perm('view_forum',forum):
+                    query = query.exclude(forum__id=forum.pk)
 
             order = {'0': 'created',
                      '1': 'author',
@@ -186,7 +184,6 @@ def search(request):
                 order = '-' + order
 
             posts = query.order_by(order)
-
             if 'topics' in request.GET['show_as']:
                 return render(request, 'djangobb_forum/search_topics.html', {
                     'results': TopicFromPostResult(posts)
@@ -204,7 +201,6 @@ def search(request):
 
 @login_required
 def misc(request):
-    assert(False)
     if 'action' in request.GET:
         action = request.GET['action']
         if action == 'markread':
@@ -356,7 +352,6 @@ def add_post(request, forum_id, topic_id):
 
 @transaction.commit_on_success
 def upload_avatar(request, username, template=None, form_class=None):
-    assert(False)
     user = get_object_or_404(User, username=username)
     if request.user.is_authenticated() and user == request.user or request.user.is_superuser:
         form = build_form(form_class, request, instance=user.forum_profile)
@@ -406,7 +401,6 @@ def user(request, username, section='essentials', action=None, template='djangob
 @login_required
 @transaction.commit_on_success
 def reputation(request, username):
-    assert(False)
     user = get_object_or_404(User, username=username)
     form = build_form(ReputationForm, request, from_user=request.user, to_user=user)
 
@@ -485,10 +479,9 @@ def edit_post(request, post_id):
 @login_required
 @transaction.commit_on_success
 def delete_posts(request, topic_id):
-    assert(False)
     topic = Topic.objects.select_related().get(pk=topic_id)
-
-    if forum_moderated_by(topic, request.user):
+    user = get_user_object(request)
+    if forum_moderated_by(topic, user):
         deleted = False
         post_list = request.POST.getlist('post')
         for post_id in post_list:
@@ -509,14 +502,15 @@ def delete_posts(request, topic_id):
     initial = {}
     if request.user.is_authenticated():
         initial = {'markup': request.user.forum_profile.markup}
-    form = AddPostForm(topic=topic, initial=initial)
+    form = AddPostForm(user=user, topic=topic, initial=initial)
 
-    moderator = request.user.is_superuser or\
-        request.user in topic.forum.moderators.all()
+    moderator = user.is_superuser or user.has_perm('djangobb_forum.moderate_forum',topic.forum)
+
     if request.user.is_authenticated() and request.user in topic.subscribers.all():
         subscribed = True
     else:
         subscribed = False
+
     return render(request, 'djangobb_forum/delete_posts.html', {
             'topic': topic,
             'last_post': last_post,
@@ -599,20 +593,18 @@ def stick_unstick_topic(request, topic_id, action):
         topic.save()
     return HttpResponseRedirect(topic.get_absolute_url())
 
-
-@login_required
 @transaction.commit_on_success
 def delete_post(request, post_id):
-    assert(False)
     post = get_object_or_404(Post, pk=post_id)
     last_post = post.topic.last_post
     topic = post.topic
     forum = post.topic.forum
+    user = get_user_object(request)
 
-    if not (request.user.is_superuser or\
-        request.user in post.topic.forum.moderators.all() or \
-        (post.user == request.user and post == last_post)):
-        messages.success(request, _("You haven't the permission to delete this post."))
+    if not (user.is_superuser or\
+            user.has_perm('djangobb_forum.moderate_forum',forum) or \
+            (post.user == user and post == last_post)):
+        messages.error(request, _("You haven't the permission to delete this post."))
         return HttpResponseRedirect(post.get_absolute_url())
 
     post.delete()
@@ -640,6 +632,7 @@ def open_close_topic(request, topic_id, action):
         topic.save()
     return HttpResponseRedirect(topic.get_absolute_url())
 
+
 @permission_required_or_403('djangobb_forum.view_user_list')
 def users(request):
     users = User.objects.filter(forum_profile__post_count__gte=forum_settings.POST_USER_SEARCH).order_by('username')
@@ -649,34 +642,36 @@ def users(request):
             'form': form,
             })
 
-
+#Enforcing login so AnonymousUser cant subscribe to any posts
 @login_required
 @transaction.commit_on_success
 def delete_subscription(request, topic_id):
-    assert(False)
     topic = get_object_or_404(Topic, pk=topic_id)
     topic.subscribers.remove(request.user)
-    messages.info(request, _("Topic subscription removed."))
+    messages.success(request, _("Topic subscription removed."))
     if 'from_topic' in request.GET:
         return HttpResponseRedirect(reverse('djangobb:topic', args=[topic.id]))
     else:
         return HttpResponseRedirect(reverse('djangobb:forum_profile', args=[request.user.username]))
 
 
+#Enforcing login so AnonymousUser cant subscribe to any posts
 @login_required
 @transaction.commit_on_success
 def add_subscription(request, topic_id):
-    assert(False)
     topic = get_object_or_404(Topic, pk=topic_id)
     topic.subscribers.add(request.user)
     messages.success(request, _("Topic subscribed."))
     return HttpResponseRedirect(reverse('djangobb:topic', args=[topic.id]))
 
 
-@login_required
 def show_attachment(request, hash):
-    assert(False)
+    user = get_user_object(request)
     attachment = get_object_or_404(Attachment, hash=hash)
+    if not user.has_perm('download_attachment',attachment.post.topic.forum):
+        messages.error(request,"You don't have permission to download attachments in this forum")
+        return HttpResponseRedirect(reverse('djangobb:topic', args=[attachment.post.topic.id]))
+        
     file_data = file(attachment.get_absolute_path(), 'rb').read()
     response = HttpResponse(file_data, mimetype=attachment.content_type)
     response['Content-Disposition'] = 'attachment; filename="%s"' % smart_str(attachment.name)
@@ -686,7 +681,6 @@ def show_attachment(request, hash):
 @login_required
 @csrf_exempt
 def post_preview(request):
-    assert(False),"post_preview does not seem to be implemented"
     '''Preview for markitup'''
     markup = request.user.forum_profile.markup
     data = request.POST.get('data', '')
