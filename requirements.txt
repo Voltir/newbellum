@@ -1,0 +1,11 @@
+Django==1.4.1
+PIL==1.1.7
+Pygments==1.5
+South==0.7.6
+Whoosh==2.4.1
+django-guardian==1.0.4
+django-haystack==1.2.7
+django-messages==0.5.0.pre
+django-pagination==1.0.7
+postmarkup==1.2.0
+wsgiref==0.1.2
