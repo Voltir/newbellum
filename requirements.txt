@@ -1,5 +1,4 @@
 Django>=1.2
-PIL>=1.1.7
 pygments
 south
 whoosh
