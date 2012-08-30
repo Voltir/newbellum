@@ -1,0 +1,14 @@
+{% load compress %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{ forum_settings.FORUM_BASE_TITLE }} {% block title %}{% endblock %}</title>
+    {% compress css %}
+        <link rel="stylesheet" type="text/scss" href="{{STATIC_URL}}scss/wat.scss" />
+    {% endcompress %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+<html>

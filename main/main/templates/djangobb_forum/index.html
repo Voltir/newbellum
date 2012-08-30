@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load forum_extras %}
+{% load i18n %}
+
+{% block content %}
+<section>
+    {% for category in cats %}
+    <section>
+        <header>{{category.cat}}</header>
+        <table>
+            <thead>
+                <tr>
+                    <th>{% trans "Forum" %}</th>
+                    <th>{% trans "Topics" %}</th>
+                    <th>{% trans "Posts" %}</th>
+                    <th>{% trans "Last post" %}</th>
+                </tr>
+            </thead>
+            </tbody>
+                {% for forum in category.forums %}
+                <tr>
+                    <td>{% link forum %}</td>
+                    <td>{{ forum.topic_count }}</td>
+                    <td>{{ forum.post_count }}</td>
+                    <td>
+                    {% if forum.updated %}
+                        {% if forum.last_post.topic %}
+                            <a href="{{ forum.last_post.get_absolute_url }}">{% forum_time forum.last_post.created %}</a>
+                            <span class="byuser">{% trans "by" %} {{ forum.last_post.user.username }}</span>
+                        {% endif %}
+                    {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endfor %}
+</section>
+{% endblock %}

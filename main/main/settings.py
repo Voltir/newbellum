@@ -54,13 +54,13 @@ MEDIA_ROOT = here('media')
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = ''
+MEDIA_URL = '/media/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = here('static')
+STATIC_ROOT = here('static_storage')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -71,6 +71,7 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+   here('static'),
 )
 
 # List of finder classes that know how to find static files in
@@ -79,6 +80,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'compressor.finders.CompressorFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -103,7 +105,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "djangobb_forum.context_processors.forum_settings",
 )
 
-
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -124,7 +125,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    here("templates/"),
+    here("templates"),
 )
 
 INSTALLED_APPS = (
@@ -139,6 +140,7 @@ INSTALLED_APPS = (
     'guardian',
     'pagination',
     'djangobb_forum',
+    'compressor',
 )
 
 ANONYMOUS_USER_ID = -1
@@ -147,6 +149,17 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # default
     'guardian.backends.ObjectPermissionBackend',
 )
+
+COMPRESS_ENABLED = True
+COMPRESS_OFFLINE = False
+
+COMPRESS_PRECOMPILERS = (
+    ('text/scss', 'pyscss {infile} > {outfile}'),
+)  
+
+COMPRESS_OFFLINE_CONTEXT = {
+    
+}
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
