@@ -1,6 +1,6 @@
 {% load static %}
 <link type="text/css" rel="stylesheet" href="{% get_static_prefix %}news/news.css" />
-{% for newsitem in newsitems %}
+{% for newsitem in news_items %}
 <div id="news_container">
     <div id="news_title">
         <h3>{{ newsitem.title }}</h3>
@@ -17,3 +17,17 @@
 </div>
 <br/>
 {% endfor %}
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ paginator.num_pages }}.
+        </span>
+        {% if page_obj.has_next %}
+             <a href="?page={{ page_obj.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>

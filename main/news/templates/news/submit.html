@@ -1,0 +1,9 @@
+{% load static %}
+<link type="text/css" rel="stylesheet" href="{% get_static_prefix %}news/news.css" />
+<form method="post" action="">
+ {% csrf_token %}
+<table>
+{{form}}
+</table>
+<input type="submit" value="Submit" />
+</form>

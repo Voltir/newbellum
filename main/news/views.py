@@ -1,42 +1,40 @@
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from news.models import NewsItem, Topic, NewsForm
+from news.models import NewsItem, Topic
 from django.template import RequestContext
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.views.generic import ListView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
-def get_user_object(request):
-    if  request.user.is_anonymous():
-        return get_anonymous_user()
-    else:
-        return request.user
+from guardian.mixins import LoginRequiredMixin
 
-def index(request):
-    #TODO:  Pagination
-    n = NewsItem.objects.filter(published=True).order_by('-post_time')
-    return render_to_response('news/index.html', {'newsitems': n})
+from forms import NewsForm
 
-def submit(request):
-    f = NewsForm(request.POST)
-    user = get_user_object(request)
-    if f.is_valid():
-        if request.user.is_authenticated() and user == request.user:
-            # Save Stuff
-            n = NewsItem()
-            n.title = f.cleaned_data['title']
-            n.body = f.cleaned_data['message']
-            n.topic = Topic.objects.get(pk=f.cleaned_data['topic'])
-            n.submitter = user
-            n.save()
-            #TODO: Send Notification E-mail
-            return HttpResponseRedirect('/news/submitted')
-        else:
-            return HttpResponseRedirect('/')
-    else:
-        f = NewsForm()
-        
-    csrfContext = RequestContext(request, {'form': f,})
-    return render_to_response('news/submit.html', csrfContext)
+#See:
+# https://docs.djangoproject.com/en/dev/topics/class-based-views/
+# http://stackoverflow.com/questions/5907575/how-do-i-use-pagination-with-django-class-based-generic-listviews
+#--Volt
+class NewsItemView(ListView):
+    template_name = 'news/index.html'
+    model = NewsItem
+    context_object_name = 'news_items'
+    paginate_by = 3
 
-def submitted(request):
-    return render_to_response('news/submitted.html')
+    def get_queryset(self):
+        return NewsItem.objects.filter(published=True).order_by('-post_time')
+
+#http://stackoverflow.com/questions/5607205/how-can-i-make-a-generic-class-based-create-view-for-a-model
+#TODO: Create login functionality so this doesnt 404 if not authenticated
+#--Volt
+class NewsItemCreate(LoginRequiredMixin,CreateView):
+    template_name = 'news/submit.html'
+    model = NewsItem
+    form_class = NewsForm
+
+    def form_valid(self,form):
+        self.news_item = form.save(commit=False)
+        self.news_item.submitter = self.request.user
+        self.news_item.save()
+        return HttpResponseRedirect('/news/submitted')

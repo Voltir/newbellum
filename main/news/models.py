@@ -1,4 +1,3 @@
-from django import forms
 from django.db import models
 from django.contrib.auth.models import User
 from djangobb_forum import settings as forum_settings
@@ -50,8 +49,3 @@ class NewsItem(models.Model):
         
     def topic_name(self):
         return self.topic.topic_name
-
-class NewsForm(forms.Form):
-    topic = forms.ChoiceField(choices=[ (t.id, t.topic) for t in Topic.objects.all()])
-    title = forms.CharField(max_length=80)
-    message = forms.CharField(widget=forms.Textarea(attrs={'class':'news_markup'}))

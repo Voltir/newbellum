@@ -128,6 +128,7 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
     here("templates"),
     here("../djangobb_forum/templates/djangobb_forum"),
+    here("../news/templates"),
 )
 
 INSTALLED_APPS = (
