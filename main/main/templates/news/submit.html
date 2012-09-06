@@ -1,0 +1,10 @@
+{% load static %}
+<link type="text/css" rel="stylesheet" href="{% get_static_prefix %}news/news.css" />
+<form action="news/submit/" method="post">{% csrf_token %}
+    {{ form.topic }}
+<p><label for="id_title">Title:</label>
+    <input id="id_title" type="text" name="title" maxlength="80" /></p>
+<p><label for="id_message">Message:</label>
+    {{ form.message }}</p>
+<input type="submit" value="Submit" />
+</form>

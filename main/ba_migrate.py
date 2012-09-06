@@ -24,7 +24,7 @@ from guardian.shortcuts import assign
 ############ TODO: Migrate Attachments!
 ############ TODO: Poster IP for posts!
 
-con = MySQLdb.connect("localhost","root","wiisfhih","testba",use_unicode=True)
+con = MySQLdb.connect("localhost","root","root","testba",use_unicode=True)
 con.query("SET character_set_client = utf8")
 con.store_result()
 h = HTMLParser.HTMLParser()

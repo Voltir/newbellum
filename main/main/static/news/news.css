@@ -1,0 +1,45 @@
+#news_container {
+    width: 800px;
+    border: 1px black solid;
+}
+
+#news_container h3, 
+#news_container p {
+    margin: 0;
+}
+
+#news_title {
+    background-color: lightblue;
+    width: 100%
+    margin: 0;
+    padding: 0 0 0 0;
+}
+
+#news {
+    width: 80%;
+    float: left;
+    padding: 5px;
+}
+
+.news_time {
+    font-size: smaller;
+    padding-bottom: 5px;
+}
+
+#news_meta {
+    width: 18%;
+    float: right;
+}
+
+.news_submitter {
+    font-size: smaller;
+    padding: 0;
+    margin: 0
+}
+
+label {
+   width: 80px;
+   float: left;
+   text-align: right;
+}
+

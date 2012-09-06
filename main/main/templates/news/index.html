@@ -1,0 +1,19 @@
+{% load static %}
+<link type="text/css" rel="stylesheet" href="{% get_static_prefix %}news/news.css" />
+{% for newsitem in newsitems %}
+<div id="news_container">
+    <div id="news_title">
+        <h3>{{ newsitem.title }}</h3>
+    </div>
+    <div id="news">
+        <p class="news_time">{{ newsitem.post_time }}</p>
+        <p>{{ newsitem.body_html|safe }}</p>
+    </div>
+    <div id="news_meta">
+        <img src="{% get_media_prefix %}{{ newsitem.topic_image }}"/><br />
+        <p class="news_submitter">Submitted By: {{ newsitem.submitter_username }}</p>
+    </div>
+    <div style="clear: both;"></div>
+</div>
+<br/>
+{% endfor %}

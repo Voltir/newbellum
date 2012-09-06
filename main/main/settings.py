@@ -103,6 +103,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
     "djangobb_forum.context_processors.forum_settings",
+    "django.core.context_processors.csrf",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -126,6 +127,7 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     here("templates"),
+    here("../djangobb_forum/templates/djangobb_forum"),
 )
 
 INSTALLED_APPS = (
@@ -137,10 +139,12 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
+    'django_evolution',   # For Development Purposes, creates DB Deltas (http://code.google.com/p/django-evolution/)
     'guardian',
     'pagination',
     'djangobb_forum',
     'compressor',
+    'news',
 )
 
 ANONYMOUS_USER_ID = -1
