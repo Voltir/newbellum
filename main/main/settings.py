@@ -129,6 +129,7 @@ TEMPLATE_DIRS = (
     here("templates"),
     here("../djangobb_forum/templates/djangobb_forum"),
     here("../news/templates"),
+    here("../site_profile/templates"),
 )
 
 INSTALLED_APPS = (
@@ -146,6 +147,7 @@ INSTALLED_APPS = (
     'djangobb_forum',
     'compressor',
     'news',
+    'site_profile',
 )
 
 ANONYMOUS_USER_ID = -1
