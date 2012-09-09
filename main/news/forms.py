@@ -19,7 +19,7 @@ class NewsFormPreview(FormPreview):
         form.body_html = smiles(form.body_html)
         #form.topic_image = form.topic.topic_image
         form.topic_image = self.news_item.topic_image
-        form.sumbmitter_username = self.requst.user.username
+        form.submitter_username = request.user.username
         
     def done(self, request, cleaned_data):
         self.news_item = form.save(commit=False)
