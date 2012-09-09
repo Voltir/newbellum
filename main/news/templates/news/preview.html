@@ -2,25 +2,15 @@
 {% block title %} Preview {% endblock %}
 
 {% block content %}
- <div id="news_container">
-    <div id="news_title">
-        <h3>{{ form.title.value }}</h3>
-    </div>
-    <div id="news">
-        <p class="news_time">{{ form.post_time.value }}</p>
-        <p>{{ form.body_html|safe }}</p>
-    </div>
-    <div id="news_meta">
-        <img src="{{ MEDIA_URL }}{{ form.topic_image }}"/><br />
-        <p class="news_submitter">Submitted By: {{ form.submitter_username }}</p>
-    </div>
-    <div style="clear: both;"></div>
-</div>
-<br/>
+{% include 'news/newsitem.html' %}
 <form method="post" action="">
  {% csrf_token %}
 <table>
 {{form}}
 </table>
+<input id="inputstage" type="hidden" name="{{ stage_field }}" value="2" />
+<input type="hidden" name="{{ hash_field }}" value="{{ hash_value }}" />
+<input type="submit" value="Preview Again" onclick="javascript:getElementById('inputstage').value='1';"/>
 <input type="submit" value="Submit" />
+</form>
 {% endblock %}

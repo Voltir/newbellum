@@ -20,6 +20,14 @@ class NewsItemAdmin(admin.ModelAdmin):
     readonly_fields = ['published']
     ordering = ['submit_time']
     actions = [publish,unpublish]
+    
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        newsitem = NewsItem.objects.get(pk=object_id)
+        extra_context['newsitem'] = newsitem
+        return super(NewsItemAdmin, self).change_view(request, object_id,
+            form_url, extra_context=extra_context)
+        
 
 class TopicAdmin(admin.ModelAdmin):
     pass
