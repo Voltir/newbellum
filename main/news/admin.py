@@ -14,7 +14,7 @@ class NewsItemAdmin(admin.ModelAdmin):
     list_display = ['title', 'topic_name', 'submitter_username' , 'submit_time', 'post_time', 'published']
     fieldsets = (
         (None, {
-            'fields': ('title', 'topic', 'submitter', 'markup', 'body', 'published'),
+            'fields': ('title', 'topic', 'submitter', 'body', 'published'),
          }),
     )
     readonly_fields = ['published']

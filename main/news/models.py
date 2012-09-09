@@ -23,7 +23,6 @@ class NewsItem(models.Model):
     submit_time = models.DateTimeField('Created', auto_now_add=True)
     post_time = models.DateTimeField('Posted', blank=True, null=True)
     # The Body Text
-    markup = models.CharField('Markup', max_length=15, default=forum_settings.DEFAULT_MARKUP, choices=MARKUP_CHOICES)
     body = models.TextField('Message')
     body_html = models.TextField('HTML version',blank=True)
     
@@ -31,7 +30,7 @@ class NewsItem(models.Model):
         return "{0} ({1})".format(self.title, self.topic.topic)
         
     def save(self, *args, **kwargs):
-        self.body_html = convert_text_to_html(self.body, self.markup) 
+        self.body_html = convert_text_to_html(self.body, "bbcode") 
         self.body_html = smiles(self.body_html)
         super(NewsItem, self).save(*args, **kwargs)
         
