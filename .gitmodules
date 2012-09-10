@@ -4,3 +4,6 @@
 [submodule "thirdparty\\DjangoBB"]
 	path = thirdparty\\DjangoBB
 	url = https://github.com/Voltir/newbellum.git
+[submodule "thirdparty/DjangoBB"]
+	path = thirdparty/DjangoBB
+	url = git://github.com/Voltir/DjangoBB.git
