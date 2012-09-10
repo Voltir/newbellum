@@ -1,3 +1,6 @@
 [submodule "thirdparty/postmarkup"]
 	path = thirdparty/postmarkup
 	url = https://github.com/SaintPeter/postmarkup
+[submodule "thirdparty\\DjangoBB"]
+	path = thirdparty\\DjangoBB
+	url = https://github.com/Voltir/newbellum.git
