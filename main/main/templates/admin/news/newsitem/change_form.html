@@ -1,5 +1,22 @@
 {% extends "admin/change_form.html" %}
-{% block extrastyle %}{{ block.super }}<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}news/news.css" />{% endblock %}
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.sceditor.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("#id_body").sceditorBBCodePlugin({
+        style: "{{ STATIC_URL }}css/jquery.sceditor.default.min.css",
+        emoticonsRoot: "{{ STATIC_URL }}images/",
+    });
+});    
+</script>
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/default.min.css" type="text/css" media="all" />
+<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}news/news.css" />
+{% endblock %}
 
 {% block after_field_sets %}
 {% if newsitem %}
