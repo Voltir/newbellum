@@ -4,7 +4,7 @@
     </div>
     <div id="news">
         <p class="news_time">{{ newsitem.post_time }}</p>
-        <p>{{ newsitem.body_html|safe }}</p>
+        <div id="news_body">{{ newsitem.body_html|safe }}</div>
     </div>
     <div id="news_meta">
         <img src="{{ MEDIA_URL }}{{ newsitem.topic_image }}"/><br />
