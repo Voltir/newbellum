@@ -6,6 +6,7 @@ here = lambda *x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+PIPELINE = not DEBUG
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -148,13 +149,17 @@ INSTALLED_APPS = (
     'compressor',
     'news',
     'site_profile',
-)
+#'social_auth',
+    )
 
 ANONYMOUS_USER_ID = -1
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # default
     'guardian.backends.ObjectPermissionBackend',
+    #'social_auth.backends.google.GoogleOAuthBackend',
+    'social_auth.backends.google.GoogleOAuth2Backend',
+    #'social_auth.backends.google.GoogleBackend',
 )
 
 COMPRESS_ENABLED = True
@@ -200,3 +205,11 @@ LOGGING = {
 HAYSTACK_SITECONF = 'main.search_sites'
 HAYSTACK_SEARCH_ENGINE = 'whoosh'
 HAYSTACK_WHOOSH_PATH = here('whoosh_index')
+
+#TODO: put in local settings which is not put into version control
+GOOGLE_OAUTH2_CLIENT_ID = '957388493408.apps.googleusercontent.com'
+GOOGLE_OAUTH2_CLIENT_SECRET = 'AESKWncR1OcuE4hTrpYc9UU-'
+
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/login/'
+LOGOUT_URL = '/logout/'

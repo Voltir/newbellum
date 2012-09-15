@@ -1,18 +1,19 @@
-//$blue: #3bbfce;
-$blue: #bbbbff;
-$margin: 16px;
+$margin: 250px;
+$background: #ccc;
 
-.content-navigation {
-  border-color: $blue;
-  color:
-    darken($blue, 9%);
+body { 
+    margin: 0;
+    padding: 0;
 }
 
-body {
-    background-color: $blue;
+section {
+    float: left;    
+    margin-left: $margin; 
 }
-.border {
-  padding: $margin / 2;
-  margin: $margin / 2;
-  border-color: $blue;
+
+nav { 
+    width: $margin;
+    height: 100%;
+    position: fixed;
+    background-color: $background;
 }

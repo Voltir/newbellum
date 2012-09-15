@@ -1,0 +1,32 @@
+{% load compress %}
+{% load i18n %}
+{% load guardian_tags %}
+
+<!-- get_obj_perms request.user for ??? as "nav_perms"  -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>{% block site_title %}Bellum Aeternus{% endblock %}</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    {% compress css %}
+        <link rel="stylesheet" type="text/scss" href="{{STATIC_URL}}scss/wat.scss" />
+    {% endcompress %}
+
+    {% block site_head %}{% endblock %}
+</head>
+
+<body>
+    <nav>
+        {% block site_navigation %}
+            {% include 'site_nav.html' %}
+        {% endblock %}
+    </nav>
+    <section>
+        {% block site_content %}{% endblock %}
+    </section>
+</body>
+
+</html>
