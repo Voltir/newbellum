@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
 from news.models import NewsItem, Topic
 from django.template import RequestContext
@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from postmarkup import render_bbcode
 
 from guardian.mixins import LoginRequiredMixin
 
@@ -38,3 +39,6 @@ class NewsItemCreate(LoginRequiredMixin,CreateView):
         self.news_item.submitter = self.request.user
         self.news_item.save()
         return HttpResponseRedirect('/news/submitted')
+        
+def NewsPreviewHTML(request):
+    return HttpResponse(render_bbcode(request.POST['body']))

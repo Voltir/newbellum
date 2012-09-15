@@ -5,11 +5,23 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
+        // Initialize the editor
         $("#id_body").sceditorBBCodePlugin({
         style: "{{ STATIC_URL }}css/jquery.sceditor.default.min.css",
         emoticonsRoot: "{{ STATIC_URL }}images/",
-    });
-});    
+        });
+        // Move the button where I want it
+        $('.move_to_submit_row').insertBefore('.submit-row>input:first');
+    }); 
+    function doPreview() {
+       // Force write to textarea
+       $("#id_body").data("sceditor").updateTextareaValue ();
+       // Do Ajaxy stuff
+       $.ajax({type:'POST', url: '/news/preview_html/', data:$('#newsitem_form').serialize(), success: function(response) {
+            $('#news_body').html(response);
+        }});
+        return false;
+}   
 </script>
 {% endblock %}
 
@@ -19,8 +31,10 @@
 {% endblock %}
 
 {% block after_field_sets %}
+<h1>Preview</h1>
 {% if newsitem %}
 {% include 'news/newsitem.html' %}
 </br>
+<input value="HTML Preview" onclick="return doPreview();" class="move_to_submit_row" type="button"/>
 {% endif %}{% endblock %}
 
