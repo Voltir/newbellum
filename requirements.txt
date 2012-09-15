@@ -10,3 +10,4 @@ django_compressor
 https://github.com/arneb/django-messages/tarball/master#egg=django-messages
 git+git://github.com/Kronuz/pyScss.git
 django_evolution
+django-social-auth
