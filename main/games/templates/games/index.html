@@ -1,0 +1,9 @@
+{% extends 'games/base.html' %}
+{% block title %} Games View {% endblock %}
+
+{% block content %}
+{% for game in object_list %}
+{% include 'games/game.html' %}
+<br />
+{% endfor %}
+{% endblock %}

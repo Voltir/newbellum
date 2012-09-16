@@ -1,0 +1,27 @@
+<div id="game_container">
+    <div id="image_container">
+        <img class="game_image" src="{{ MEDIA_URL }}{{ game.image }}" />
+    </div>
+    <div id="meta_container">
+        <p class="game_title">game.title</p>
+        <p><span class="meta_descriptor">Server: </span>
+	        {% if game.server_url %}
+	            <a href="{{ game.server_url }}">{{ game.server }}</a>
+	        {% else %}
+	            {{ game.server }}
+	        {% endif %}
+	    </p>
+	    <p><span class="meta_descriptor">Faction: </span>
+            {% if game.faction_url %}
+                <a href="{{ game.faction_url }}">{{ game.faction }}</a>
+            {% else %}
+                {{ game.faction }}
+            {% endif %}
+        </p>
+        {% if game.game_info_url %}
+            <p><a href="{{ game.game_info_url }}">{{ game.faction }}</a></p>
+        {% endif %}
+    </div>
+    <div id="membership_container">
+        <a href="#" class="button_join">Join</a>
+    </div>

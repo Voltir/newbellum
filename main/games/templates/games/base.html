@@ -1,0 +1,14 @@
+{% extends "site_base.html" %}
+
+{% block site_title %}
+    {{block.super}} News - {% block title %}{% endblock %}
+{% endblock %}
+
+{% block site_head %}
+    {{block.super}}
+	<link type="text/css" rel="stylesheet" href="{{ STATIC_URL }}games/games.css" />
+{% endblock %}
+
+{% block site_content %}
+	{% block content %}{% endblock %}
+{% endblock %}

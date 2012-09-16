@@ -149,6 +149,8 @@ INSTALLED_APPS = (
     'compressor',
     'news',
     'site_profile',
+    'games',
+    'apps'
 #'social_auth',
     )
 
