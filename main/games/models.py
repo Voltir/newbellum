@@ -1,9 +1,11 @@
 from django.db import models
 from djangobb_forum.fields import ExtendedImageField
 from django.contrib.auth.models import Group
+from django.core.urlresolvers import reverse
 from apps.models import App
 from postmarkup import render_bbcode
 from djangobb_forum.util import smiles
+from django.conf import settings
 
 # Create your models here.
 class Game(models.Model):
@@ -31,4 +33,12 @@ class Game(models.Model):
         
     def is_member(self):
         return False
+    
+    def view_detail_url(self):
+        return reverse('game_detail_view',args=[self.pk])
+    
+    def image_display(self):
+        filename = settings.MEDIA_URL + str(self.image)
+        return '<img src="{0}" />'.format(filename)
+    image_display.allow_tags = True
     

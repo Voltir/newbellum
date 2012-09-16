@@ -3,7 +3,7 @@
         <img class="game_image" src="{{ MEDIA_URL }}{{ game.image }}" />
     </div>
     <div id="meta_container">
-        <p class="game_title">game.title</p>
+        <p class="game_title"><a href="{{ game.view_detail_url }}">{{ game.title }}</a></p>
         <p><span class="meta_descriptor">Server: </span>
 	        {% if game.server_url %}
 	            <a href="{{ game.server_url }}">{{ game.server }}</a>
@@ -19,9 +19,10 @@
             {% endif %}
         </p>
         {% if game.game_info_url %}
-            <p><a href="{{ game.game_info_url }}">{{ game.faction }}</a></p>
+            <p><a href="{{ game.game_info_url }}">More Info...</a></p>
         {% endif %}
     </div>
     <div id="membership_container">
         <a href="#" class="button_join">Join</a>
     </div>
+</div>
