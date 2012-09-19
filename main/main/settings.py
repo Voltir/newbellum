@@ -141,6 +141,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'grappelli',
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django_evolution',   # For Development Purposes, creates DB Deltas (http://code.google.com/p/django-evolution/)
