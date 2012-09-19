@@ -1,9 +1,8 @@
-#Alias /static /home/bellum/public_html/newbellum/main/main/static
 
 AddHandler fcgid-script .fcgi
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(static/.*)$ main/$1 [QSA,PT,L]
+RewriteRule ^static/(.*)$ main/static_storage/$1 [QSA,PT,L]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ /newbellum.fcgi/$1 [QSA,L]
