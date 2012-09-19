@@ -1,0 +1,9 @@
+{% extends "site_base.html" %}
+
+{% block site_title %}
+    {{block.super}} Profile - {% block title %}{% endblock %}
+{% endblock %}
+
+{% block site_content %}
+	{% block content %}{% endblock %}
+{% endblock %}

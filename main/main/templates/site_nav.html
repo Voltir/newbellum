@@ -1,4 +1,7 @@
 <ul>
-    <li><a href="/forum/">Forum</a></li>
+    <li>Login with <a href="{% url login %}?next={{request.path}}">Password</a></li>
+    <li>Login with <a href="{% url socialauth_begin 'google' %}">Google</a></li>
+    <li><a href="{% url logout %}">Logout</a></li>
+    <li><a href="{% url djangobb:index %}">Forum</a></li>
     <li><a href="/news/">News</a></li>
 </ul>

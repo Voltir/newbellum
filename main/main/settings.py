@@ -1,6 +1,7 @@
 # Django settings for main project.
 
 import os
+from local_settings import *
 
 here = lambda *x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
 
@@ -150,19 +151,11 @@ INSTALLED_APPS = (
     'news',
     'site_profile',
     'games',
-    'apps'
-#'social_auth',
-    )
+    'apps',
+    'social_auth',
+)
 
 ANONYMOUS_USER_ID = -1
-
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend', # default
-    'guardian.backends.ObjectPermissionBackend',
-    #'social_auth.backends.google.GoogleOAuthBackend',
-    'social_auth.backends.google.GoogleOAuth2Backend',
-    #'social_auth.backends.google.GoogleBackend',
-)
 
 COMPRESS_ENABLED = True
 COMPRESS_OFFLINE = False
@@ -208,10 +201,24 @@ HAYSTACK_SITECONF = 'main.search_sites'
 HAYSTACK_SEARCH_ENGINE = 'whoosh'
 HAYSTACK_WHOOSH_PATH = here('whoosh_index')
 
-#TODO: put in local settings which is not put into version control
-GOOGLE_OAUTH2_CLIENT_ID = '957388493408.apps.googleusercontent.com'
-GOOGLE_OAUTH2_CLIENT_SECRET = 'AESKWncR1OcuE4hTrpYc9UU-'
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # default
+    'guardian.backends.ObjectPermissionBackend',
+    #'social_auth.backends.google.GoogleOAuthBackend',
+    #'social_auth.backends.google.GoogleOAuth2Backend',
+    'social_auth.backends.google.GoogleBackend',
+)
 
-LOGIN_REDIRECT_URL = '/'
+SOCIAL_AUTH_PIPELINE = (
+    'social_auth.backends.pipeline.social.social_auth_user',
+    'social_auth.backends.pipeline.misc.save_status_to_session',
+    'site_profile.pipeline.check_registration',
+    'site_profile.pipeline.username',
+    'social_auth.backends.pipeline.user.create_user', 
+    'social_auth.backends.pipeline.social.associate_user',
+    'social_auth.backends.pipeline.user.update_user_details',
+)
+
+LOGIN_REDIRECT_URL = '/forum'
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
