@@ -4,18 +4,22 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery.sceditor.min.js"></script>
 
 <script type="text/javascript">
+    var first = 1;
     $(document).ready(function() {
         // Initialize the editor
-        $("#id_body").sceditorBBCodePlugin({
-        style: "{{ STATIC_URL }}css/jquery.sceditor.default.min.css",
-        emoticonsRoot: "{{ STATIC_URL }}images/",
-        });
-        // Move the button where I want it
-        $('.move_to_submit_row').insertBefore('.submit-row>input:first');
+        if(first) {
+	        $("#id_body:first").sceditorBBCodePlugin({
+	        style: "{{ STATIC_URL }}css/jquery.sceditor.default.min.css",
+	        emoticonsRoot: "{{ STATIC_URL }}images/",
+	        });
+	        // Move the button where I want it
+	        $('.move_to_submit_row').insertAfter('.grp-float-left ~ li:last');
+	        first = 0;
+        }
     }); 
     function doPreview() {
        // Force write to textarea
-       $("#id_body").data("sceditor").updateTextareaValue ();
+       $("#id_body:first").data("sceditor").updateTextareaValue ();
        // Do Ajaxy stuff
        $.ajax({type:'POST', url: '/news/preview_html/', data:$('#newsitem_form').serialize(), success: function(response) {
             $('#news_body').html(response);
@@ -31,10 +35,10 @@
 {% endblock %}
 
 {% block after_field_sets %}
-<h1>Preview</h1>
 {% if newsitem %}
+<h1>Preview</h1>
 {% include 'news/newsitem.html' %}
 </br>
-<input value="HTML Preview" onclick="return doPreview();" class="move_to_submit_row" type="button"/>
+<li class="move_to_submit_row"><input value="HTML Preview" class="grp-button" onclick="return doPreview();" type="button"/></li>
 {% endif %}{% endblock %}
 
