@@ -23,6 +23,10 @@
         {% endif %}
     </div>
     <div id="membership_container">
-        <a href="#" class="button_join">Join</a>
+        {% if game.is_member %}
+            <p>Joined: {{ game.joined_date }}</p>
+        {% else %}
+            <a href="#" class="button_join">Join</a>
+        {% endif %}
     </div>
 </div>

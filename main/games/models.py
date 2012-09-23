@@ -1,6 +1,6 @@
 from django.db import models
 from djangobb_forum.fields import ExtendedImageField
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import User, Group
 from django.core.urlresolvers import reverse
 from apps.models import App
 from postmarkup import render_bbcode
@@ -23,6 +23,7 @@ class Game(models.Model):
     app = models.ForeignKey(App, verbose_name='Application', blank=True, null=True)
     members_group = models.ForeignKey(Group, verbose_name='Members Group', blank=True, null=True)
     active = models.BooleanField(verbose_name='Require Application', default=False)
+    game_members = models.ManyToManyField(User, through='GameMember')
     
     def save(self, *args, **kwargs):
         '''Render the long description into HTML on save'''
@@ -31,8 +32,11 @@ class Game(models.Model):
         self.long_desc_html = smiles(self.long_desc_html)
         super(Game, self).save(*args, **kwargs)
         
-    def is_member(self):
-        return False
+    def get_membership(self, user):
+        try:
+            return GameMember.objects.get(user=user, game=self)
+        except:
+            return None
     
     def view_detail_url(self):
         return reverse('game_detail_view',args=[self.pk])
@@ -41,4 +45,10 @@ class Game(models.Model):
         filename = settings.MEDIA_URL + str(self.image)
         return '<img src="{0}" />'.format(filename)
     image_display.allow_tags = True
+    
+class GameMember(models.Model):
+    game = models.ForeignKey(Game, verbose_name="Member of Game")
+    user = models.ForeignKey(User)
+    date = models.DateField("Date Joined", None, auto_now=True, auto_now_add=True)
+    
     
