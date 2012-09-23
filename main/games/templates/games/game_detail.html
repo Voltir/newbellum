@@ -2,6 +2,7 @@
 {% block title %} - {{ game.title }}{% endblock %}
 
 {% block content %}
+    <a style="float:left;display:block" href="{% url game_list %}">Return to Game List</a><br />
     <div id="image_container">
         <img class="game_image" src="{{ MEDIA_URL }}{{ game.image }}" />
     </div>
@@ -26,6 +27,10 @@
         {% endif %}
     </div>
     <div id="membership_container">
-        <a href="#" class="button_join">Join</a>
+        {% if game.is_member %}
+            <p>Joined: {{ game.joined_date }}</p>
+        {% else %}
+            <a href="{% url game_join pk=game.id %}" class="button_join">Join</a>
+        {% endif %}
     </div>
 {% endblock %}

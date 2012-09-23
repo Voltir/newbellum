@@ -26,7 +26,7 @@
         {% if game.is_member %}
             <p>Joined: {{ game.joined_date }}</p>
         {% else %}
-            <a href="#" class="button_join">Join</a>
+            <a href="{% url game_join pk=game.id %}" class="button_join">Join</a>
         {% endif %}
     </div>
 </div>
